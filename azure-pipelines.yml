@@ -94,11 +94,10 @@ stages:
         terraform apply -input=false -auto-approve
 
         # Get the App Service name for the dev environment.
-        WebAppNameDev=$(terraform output appservice_name_dev)
+        WebAppNameDev=$(terraform output -raw appservice_name_dev)
 
         # Write the WebAppNameDev variable to the pipeline.
         echo "##vso[task.setvariable variable=WebAppNameDev;isOutput=true]$WebAppNameDev"
-        echo "WebAppNameDev = $WebAppNameDev"
       name: 'RunTerraform'
       displayName: 'Run Terraform'
       env:
@@ -119,11 +118,9 @@ stages:
           steps:
           - download: current
             artifact: drop
-          - script: |
-              echo "Value of WebAppNameDev is $(WebAppNameDev)"
           - task: AzureWebApp@1
             displayName: 'Azure App Service Deploy: website'
             inputs:
               azureSubscription: 'Resource Manager - Tailspin - Space Game'
-              appName: 'tailspin-space-game-web-dev-8228'
+              appName: '$(WebAppNameDev)'
               package: '$(Pipeline.Workspace)/drop/$(buildConfiguration)/*.zip'
